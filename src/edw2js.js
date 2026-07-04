@@ -74,7 +74,22 @@ function transpileLine(raw) {
   // mientras cond:
   if ((m = line.match(/^(\s*)mientras\s+(.*):\s*$/))) return `${indent}while (${m[2]}) {`;
 
-  // importar "mod" como nombre
+  // dejax nombre = asincrona (params) =>:   ->  let nombre = async (params) => {
+  if ((m = line.match(/^(\s*)(dejax|constx)\s+(\w+)\s*=\s*asincrona\s*\(([^)]*)\)\s*=>\s*:\s*$/))) {
+    const decl = m[2] === 'constx' ? 'const' : 'let';
+    return `${indent}${decl} ${m[3]} = async (${m[4]}) => {`;
+  }
+  // dejax nombre = (params) =>:   ->  let nombre = (params) => {
+  if ((m = line.match(/^(\s*)(dejax|constx)\s+(\w+)\s*=\s*\(([^)]*)\)\s*=>\s*:\s*$/))) {
+    const decl = m[2] === 'constx' ? 'const' : 'let';
+    return `${indent}${decl} ${m[3]} = (${m[4]}) => {`;
+  }
+
+  // exportar por defecto X   ->   export default X;   (ES Modules)
+  if ((m = line.match(/^(\s*)exportar\s+por\s+defecto\s+(.+?)\s*$/))) {
+    return `${indent}export default ${m[2]};`;
+  }
+
   if ((m = line.match(/^(\s*)importar\s+"([^"]+)"\s+como\s+(\w+)\s*$/))) {
     return `${indent}const ${m[3]} = require("${m[2]}");`;
   }
@@ -89,28 +104,34 @@ function transpileLine(raw) {
 
 function closeBlocksByIndent(lines) {
   const out = [];
-  const stack = [0];
+  const stack = [-1]; // sentinel: nada abierto a nivel superior
   const opensBlock = (l) => l.trim().endsWith('{');
 
   for (const line of lines) {
     if (line.trim() === '') { out.push(''); continue; }
     const indent = (line.match(/^(\s*)/)[1]).length;
-    const isCloser = line.trim().startsWith('}'); // "} else {" / "} catch (e) {"
+    const isCloser = line.trim().startsWith('}'); // "} else {" / "}" / "}, { quoted: m })"
 
-    if (isCloser && stack.length > 1) stack.pop();
-
-    while (stack.length > 1 && indent < stack[stack.length - 1]) {
+    // Si la línea ya trae su propio '}' (else/catch/objeto cerrado a mano),
+    // consumimos un nivel de la pila sin emitir una llave extra.
+    if (isCloser && stack.length > 1) {
       stack.pop();
-      out.push(' '.repeat(stack[stack.length - 1]) + '}');
+    }
+
+    // Cierra automáticamente cualquier bloque cuya sangría de apertura
+    // sea igual o mayor a la sangría actual (volvimos a ese nivel o más atrás).
+    while (stack.length > 1 && indent <= stack[stack.length - 1]) {
+      const openIndent = stack.pop();
+      out.push(' '.repeat(openIndent) + '}');
     }
 
     out.push(line);
 
-    if (opensBlock(line)) stack.push(indent + 4);
+    if (opensBlock(line)) stack.push(indent);
   }
   while (stack.length > 1) {
-    stack.pop();
-    out.push(' '.repeat(stack[stack.length - 1]) + '}');
+    const openIndent = stack.pop();
+    out.push(' '.repeat(openIndent) + '}');
   }
   return out;
 }
