@@ -1,0 +1,15 @@
+{
+  "name": "edw-lang",
+  "version": "1.0.0",
+  "description": "EDW LANG - un lenguaje personalizado en español que transpila a JavaScript, hecho para bots de WhatsApp y APIs.",
+  "main": "src/edw2js.js",
+  "bin": {
+    "edw": "./bin/edw.js"
+  },
+  "scripts": {
+    "test": "node bin/edw.js examples/ping.edw --run"
+  },
+  "keywords": ["lenguaje", "transpiler", "whatsapp-bot", "edw-lang", "español"],
+  "author": "Edward Dev",
+  "license": "MIT"
+}
