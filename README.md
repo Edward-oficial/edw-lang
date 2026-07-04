@@ -7,7 +7,7 @@ Firma: todo arranca con `edw`.
 ## Instalación local
 
 ```bash
-git clone https://github.com/TU_USUARIO/edw-lang.git
+git clone https://github.com/Edward-oficial/edw-lang.git
 cd edw-lang
 npm install -g .
 ```
