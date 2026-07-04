@@ -1,0 +1,8 @@
+edw asincrona funcion run(sock, msg, args):
+    edw intenta:
+        edw espera sock.sendMessage(msg.key.remoteJid, { text: "pong" })
+        edw gritax "listo"
+    edw atrapa error:
+        edw krx error
+
+edw exportar { command: "ping", run: run }

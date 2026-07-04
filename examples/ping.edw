@@ -1,1 +1,16 @@
+( ================================================== )
+( comando: ping                                      )
+( uso: .ping                                          )
+( ================================================== )
 
+edw asincrona funcion run(sock, msg, args):
+    edw intenta:
+        edw dejax inicio = Date.now()
+        edw espera sock.sendMessage(msg.key.remoteJid, { text: "🏓 Calculando..." })
+        edw dejax demora = Date.now() - inicio
+        edw espera sock.sendMessage(msg.key.remoteJid, { text: "🏓 Pong! " + demora + "ms" })
+    edw atrapa error:
+        edw krx error
+        edw espera sock.sendMessage(msg.key.remoteJid, { text: "❌ Error ejecutando ping" })
+
+edw exportar { command: "ping", run: run }
